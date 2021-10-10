@@ -26,11 +26,14 @@ CPC_SUA <- readr::read_csv("data_raw/FAOSTAT_meta/SD_2015_CPC_6-9-2021.csv") %>%
   distinct() %>% mutate(CPC_code = toupper(CPC_code))
 
 
-FBS_SUA_item %>% left_join(CPC_SUA, by = "CPC_code") %>% left_join(
+
+FBS_SUA_item %>% left_join(CPC_SUA %>% rm_accent("SUA_item") %>%
+                             mutate(SUA_item = replace(SUA_item, SUA_item == "MatAC", "Mate")),
+                           by = "CPC_code") %>% left_join(
   FBSH %>%
     bind_rows(CB %>%
                 filter(!item %in% intersect(unique(FBSH$item), unique(CB$item)))) %>%
-    select(FBSH_item = item, FAO_FBS_code = `item code`) %>% distinct() %>%
+    select(FBSH_item = item, FAO_FBS_code = `item_code`) %>% distinct() %>%
     filter(FAO_FBS_code < 2900, FAO_FBS_code != 2501),   #exclude aggregated items & population
   by = "FAO_FBS_code"
 ) %>% left_join(
@@ -38,8 +41,5 @@ FBS_SUA_item %>% left_join(CPC_SUA, by = "CPC_code") %>% left_join(
     bind_rows(FAO_an_items_cal_SUA %>% select(FBSH_item = item, GCAM_commodity)), by = "FBSH_item"
 ) -> FBS_SUA_item_mapping
 
-
-intersect(unique(FBS$`item code`), unique(FBS_SUA_item$FAO_FBS_code))
-setdiff(unique(FBS$`item code`), unique(FBS_SUA_item$FAO_FBS_code))
 
 

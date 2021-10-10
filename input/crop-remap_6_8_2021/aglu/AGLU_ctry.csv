@@ -1,8 +1,8 @@
-# File: AGLU_ctry.csv
-# Title: Mapping of countries in AGLU databases to ISO codes
-# Units: NA
-# Column types: ccccicccicc
-# ----------
+# File: AGLU_ctry.csv,,,,,,,,,,
+# Title: Mapping of countries in AGLU databases to ISO codes,,,,,,,,,,
+# Units: NA,,,,,,,,,,
+# Column types: ccccicccicc,,,,,,,,,,
+# ----------,,,,,,,,,,
 FAO_country,iso,GTAP_region,CROSIT_ctry,CROSIT_country_ID,MIRCA_country,IFA2002_country,IFA_region,IMAGE_region_ID,IMAGE_region_name,FAO2050_reg
 Afghanistan,afg,xsa,AFGH,65,Afghanistan,,Rest of world,18,South Asia,South Asia
 Albania,alb,alb,OEEU,197,Albania,ALBANIA,Rest of world,12,Central Europe,Transition countries
@@ -107,6 +107,7 @@ Guam,gum,xoc,,,Guam,,USA,24,Oceania,South Asia
 Guatemala,gtm,xca,GUAT,40,Guatemala,GUATEMALA,Rest of world,4,Rest Central America,Latin America and Caribbean
 Guinea,gin,xss,GUIN,7,Guinea,GUINEA,Rest of world,8,Western Africa,sub-Saharan Africa
 Guinea-Bissau,gnb,xss,GUIB,129,Guinea-Bissau,,Rest of world,8,Western Africa,sub-Saharan Africa
+French Guyana,guy,xsm,GUYA,56,Guyana,,Rest of world,6,Rest South America,Latin America and Caribbean
 Guyana,guy,xsm,GUYA,56,Guyana,,Rest of world,6,Rest South America,Latin America and Caribbean
 Haiti,hti,xfa,HAIT,47,Haiti,,Rest of world,4,Rest Central America,Latin America and Caribbean
 Holy See,vat,,,,Vatican City,,,11,Western Europe,Industrial countries
@@ -229,12 +230,14 @@ Sudan,sdn,xss,SUDA,64,Sudan,,Rest of world,9,Eastern Africa,sub-Saharan Africa
 Sudan (former),sdn,xss,SUDA,64,Sudan,,Rest of world,9,Eastern Africa,sub-Saharan Africa
 Suriname,sur,xsm,SURI,59,Suriname,,Rest of world,6,Rest South America,Latin America and Caribbean
 Svalbard and Jan Mayen Islands,sjm,,,,,,,11,Western Europe,Industrial countries
+Eswatini,swz,xsc,SWAZ,134,Swaziland,,Rest of world,10,Southern Africa,sub-Saharan Africa
 Swaziland,swz,xsc,SWAZ,134,Swaziland,,Rest of world,10,Southern Africa,sub-Saharan Africa
 Sweden,swe,swe,EU15,195,Sweden,SWEDEN,EU-27,11,Western Europe,Industrial countries
 Switzerland,che,che,SWIT,110,Switzerland,SWITZERLAND,Rest of world,11,Western Europe,Industrial countries
 Syrian Arab Republic,syr,xme,SYRI,72,Syria,SYRIA,Rest of world,17,Middle East,Near East / North Africa
 Tajikistan,tjk,xsu,CEAS,198,Tajikistan,,Rest of world,15,Asia-Stan,Transition countries
 Thailand,tha,tha,THAI,87,Thailand,THAILAND,Thailand,21,Southeastern Asia,South Asia
+North Macedonia,mkd,xer,OEEU,197,Macedonia,,Rest of world,12,Central Europe,Transition countries
 The former Yugoslav Republic of Macedonia,mkd,xer,OEEU,197,Macedonia,,Rest of world,12,Central Europe,Transition countries
 Timor-Leste,tls,xse,,,East Timor,,Rest of world,22,Indonesia plus,South Asia
 Togo,tgo,xss,TOGO,16,Togo,TOGO,Rest of world,8,Western Africa,sub-Saharan Africa
@@ -249,6 +252,7 @@ Tuvalu,tuv,xoc,,,Tuvalu,,Rest of world,24,Oceania,South Asia
 Uganda,uga,uga,UGAN,36,Uganda,,Rest of world,9,Eastern Africa,sub-Saharan Africa
 Ukraine,ukr,xsu,OEEU,197,Ukraine,,Rest of world,14,Ukraine plus,Transition countries
 United Arab Emirates,are,xme,UAEM,166,United Arab Emirates,,Rest of world,17,Middle East,Near East / North Africa
+United Kingdom of Great Britain and Northern Ireland,gbr,gbr,EU15,195,United Kingdom,UK,EU-27,11,Western Europe,Industrial countries
 United Kingdom,gbr,gbr,EU15,195,United Kingdom,UK,EU-27,11,Western Europe,Industrial countries
 United Republic of Tanzania,tza,tza,TANZ,35,Tanzania,,Rest of world,10,Southern Africa,sub-Saharan Africa
 United States of America,usa,usa,USA,92,United States,USA,USA,2,USA,Industrial countries

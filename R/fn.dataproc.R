@@ -1,4 +1,24 @@
 #************************************
+Agg_reg <- function(.df, ..., rmNA = TRUE){
+  assertthat::assert_that(is.logical(rmNA))
+  .df %>% group_by(...) %>% summarise(value = sum(value, na.rm = rmNA), .groups = "drop")
+}
+
+#remove accent and apostrophe for cols in a df
+rm_accent <- function(.df, ...){
+
+  assertthat::assert_that(
+    length(intersect(c(...), names(.df))) == length(c(...)),
+    msg = "Columns listed not included in the data frame")
+
+  .df %>%
+    mutate_at(c(...), iconv,  to = 'ASCII//TRANSLIT') %>%
+    mutate_at(c(...), .funs = gsub, pattern = "\\'", replacement = "")
+
+}
+
+
+
 lookup <- function(.lookupvalue, .lookup_df, .lookup_col, .target_col){
 
   assert_that(is.character(.lookupvalue))
@@ -58,7 +78,7 @@ Local_rawdata_info <- function(data_folder = "data_raw/"){          #folder incl
 
 ################################
 
-Proc_primarize <- function(.df, source_item, sink_item){
+Proc_primarize0 <- function(.df, source_item, sink_item){
 
   .df %>% filter(element == "Production",
                  item %in% sink_item) %>%
@@ -85,7 +105,7 @@ Proc_primarize_self <- function(.df, source_item){
   select(-prod)
 }
 
-#oilshare oil / (oil + cake). When cake data is missing, add those into feed in oil using oilshare
+#oilshare = oil / (oil + cake). When cake data is missing, add those into feed in oil using oilshare
 Proc_primarize_oil <- function(.df, source_item, sink_item, oil_item = NULL, oilshare){
 
   if (is.null(oil_item) == F) {assertthat::assert_that(oil_item %in%  sink_item)} else
@@ -135,4 +155,38 @@ Proc_primarize_aggregate <- function(.df, Primary_crop){
     left_join(iso_GCAM_regID %>% select(iso, GCAM_region_ID), by = "iso") %>%
     left_join(GCAM_region_names %>% select(GCAM_region_ID, reg = region), by = "GCAM_region_ID") %>%
     group_by(region = reg, item, year, element) %>% summarise(value = sum(value), .groups = "drop")
+}
+
+
+assert_FBS_balance <- function(.df){
+  assert_that(is.data.frame(.df))
+
+  # Check data
+  # 1. Positive value except stock variation and residues
+  if (isTRUE(.df %>% filter(!element %in% c("Stock Variation", "Residuals")) %>%
+             summarise(min = min(value)) %>% pull(min) >= 0)) {
+    message("Good! Signs checked") } else{
+      warning("Negative values in key elements (not including stock variation and Residuals)")
+    }
+
+  # 2. Trade balance in all year and items
+  if (isTRUE(.df %>% filter(element %in% c("Import", "Export")) %>%
+             group_by(year, item, element) %>%
+             summarise(value = sum(value), .groups = "drop") %>%
+             spread(element, value) %>% filter(abs(Import - Export) > 0.0001) %>% nrow() == 0)) {
+    message("Good! Gross trade in balance") } else{
+      warning("Gross trade imbalance")
+    }
+
+  # 3. Storage in balance across time
+  if (isTRUE(.df %>% filter(element %in% c("Opening stocks", "Closing stocks", "Stock Variation")) %>%
+             spread(element, value) %>%
+             filter(`Opening stocks` + `Stock Variation` - `Closing stocks` != 0) %>% nrow() == 0 &
+             .df %>% filter(element %in% c("Opening stocks", "Closing stocks", "Stock Variation")) %>%
+             spread(element, value) %>% group_by(area, item) %>%  arrange(area, item, year) %>%
+             mutate(bal = abs(lag(`Closing stocks`) - `Opening stocks`)) %>%
+             filter(is.na(bal) == F, bal > 0.0001) %>% nrow() == 0)){
+    message("Good! Storage in balance across time") } else{
+      warning("Stock imbalance across time or inconsistent stock variation")
+    }
 }

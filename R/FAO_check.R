@@ -1,16 +1,57 @@
 
 #region/country & itemdefinition downloaded from FAOSTAT
 #http://www.fao.org/faostat/en/#definitions
-FAO_ctry <- readr::read_csv("data_raw/FAOSTAT_meta/FAOSTAT_data_region_6-7-2021.csv") %>%
+
+updatedate <- "8-2-2021"
+data_folder <- "data_raw"
+
+FAO_ctry <- readr::read_csv(file.path(data_folder,"FAOSTAT_meta", paste0("FAOSTAT_data_region_", updatedate, ".csv"))) %>%
   mutate(Country = iconv(Country, to = 'ASCII//TRANSLIT'),
          Country = gsub("\\'", "", Country))
-FAO_ctrygroup <- readr::read_csv("data_raw/FAOSTAT_meta/FAOSTAT_data_regiongroup_6-7-2021.csv") %>%
+FAO_ctrygroup <- readr::read_csv(file.path(data_folder,"FAOSTAT_meta", paste0("FAOSTAT_data_regiongroup_", updatedate, ".csv"))) %>%
   mutate(Country = iconv(Country, to = 'ASCII//TRANSLIT'),
          Country = gsub("\\'", "", Country))
-FAO_item <- readr::read_csv("data_raw/FAOSTAT_meta/FAOSTAT_data_item_6-7-2021.csv") %>%
+FAO_ctrygroup %>% filter(`Country Group` == "World") -> A
+
+FAO_ctry %>% distinct(Country) %>% pull() %>% intersect(
+  FAO_ctrygroup %>% filter(`Country Group` == "World") %>% distinct(Country) %>% pull()
+)
+
+
+QCL %>% filter(`area code` < 350) %>% distinct(area) %>% pull() -> QCL_reg
+TCL %>% filter(`area code` < 350) %>% distinct(area) %>% filter(grepl("intra-trade", area) == F) %>% pull() -> TCL_reg
+SCL %>% filter(`area code` < 350) %>% distinct(area) %>% pull() -> SCL_reg
+FBSH %>% filter(`area code` < 350) %>% distinct(area) %>% pull() -> FBSH_reg
+CB %>% filter(`area code` < 350) %>% distinct(area) %>% pull() -> CB_reg
+TM %>% filter(`reporter country code` < 350) %>% distinct(`reporter countries`) %>% pull() -> TM_reporter
+TM %>% filter(`partner country code` < 350) %>% distinct(`partner countries`) %>% pull() -> TM_partner
+setdiff(TM_reporter, TM_partner); TM_partner %>% setdiff(TM_reporter)
+setdiff(TCL_reg, QCL_reg); setdiff(QCL_reg, TCL_reg)
+setdiff(FBSH_reg, QCL_reg); setdiff(QCL_reg, FBSH_reg)
+
+setdiff(TM_partner, TCL_reg)
+
+TCL_reg %>% intersect(QCL_reg) %>%
+  #intersect(TM_reporter) %>%
+  intersect(TM_partner) %>%
+  intersect(SCL_reg) %>%
+  intersect(FBSH_reg) %>% intersect(CB_reg) -> reg_intersect #169 regions
+
+setdiff(QCL_reg, reg_intersect)
+setdiff(TCL_reg, reg_intersect)
+setdiff(SCL_reg, reg_intersect)
+setdiff(FBSH_reg, reg_intersect)
+setdiff(CB_reg, reg_intersect)
+setdiff(TM_partner, reg_intersect)
+
+
+setdiff(TCL %>% distinct(area) %>% pull(), FAO_ctry %>% distinct(Country) %>% pull())
+
+
+FAO_item <- readr::read_csv(file.path(data_folder,"FAOSTAT_meta", paste0("FAOSTAT_data_item_", updatedate, ".csv"))) %>%
   select(FAO_domain_code = "Domain Code", "Domain",
          `item codes` = "Item Code", item = "Item")
-
+unique(TCL$area) %>% setdiff(unique(FAO_ctry$Country))
 
 #FAO regions with country code > 350 are aggregated regions, including China (Taiwan, Hongkong, Macau, & mainland)
 FAO_ctry_Agg <- FAO_ctry %>% filter(`Country Code` > 350) %>% pull(Country) %>% unique()
@@ -77,6 +118,10 @@ FAO_ctry_remap <- function(.df, .colname = "countries"){
     rename_(.dots=setNames(list("countries"), .colname))
 }
 
+TCL %>% filter(area %in% c(unique(bal$region))) %>%
+  filter(item == "Maize", year >2013) %>%
+  filter(element %in% c("Export Quantity", "Import Quantity")) %>%
+  FAO_ctry_remap(.colname = "area")
 
 #Draw information from a dataset
 FAO_tbl_summary <- function(.tbl, col.cnty = "countries", col.item = "item"){

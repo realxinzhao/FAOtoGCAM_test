@@ -7,7 +7,7 @@
 # ----------,,,
 item,GCAM_commodity,crop_cal_lookup,Mcal_t
 Maize and products,Corn,MAIZE,3560
-Maize Germ Oil,Corn,OIL OF MAIZE,8840
+Maize Germ Oil,,,
 Abaca,FiberCrop,,0
 Cotton lint,FiberCrop,,0
 Cottonseed,FiberCrop,,0
@@ -62,14 +62,14 @@ Millet and products,OtherGrain,MILLET,3400
 Oats,OtherGrain,OATS,3850
 Rye and products,OtherGrain,RYE,3190
 Sorghum and products,OtherGrain,SORGHUM,3430
-Coconut Oil,PalmFruit,OIL OF COCONUTS,8840
-Coconuts - Incl Copra,PalmFruit,COCONUTS,1840
-Copra Cake,PalmFruit,,0
+Coconut Oil,OilCrop,OIL OF COCONUTS,8840
+Coconuts - Incl Copra,OilCrop,COCONUTS,1840
+Copra Cake,OilCrop,,0
 Palm kernels,PalmFruit,PALM KERNELS,5140
 Palm Oil,PalmFruit,PALM OIL,8840
 Palmkernel Cake,PalmFruit,,0
 Palmkernel Oil,PalmFruit,OIL OF PALM KERNELS,8840
-Rice (Paddy Equivalent),Rice,RICE PADDY,2800
+Rice and products,Rice,RICE PADDY,2800
 Ricebran Oil,Rice,OIL OF RICE BRAN,8840
 Cassava and products,RootTuber,CASSAVA,1090
 Potatoes and products,RootTuber,POTATOES,670
@@ -104,3 +104,4 @@ Sugar non-centrifugal,SugarCrop,"SUGAR, NONCENTRIFUGAL",3510
 "Sweeteners, Other",,,0
 Tobacco,,,0
 Wine,,,0
+Rice (Paddy Equivalent),,,

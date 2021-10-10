@@ -2,6 +2,8 @@
 #PalmFruit
 # FBS or GCAM: "Palm Oil and products", "Palmkernel Oil and products", "Palm kernels and products"
 # Coconuts are not included here
+# "Fatty acids" and  "Fatty substance residues" are also not included due to data uncertainty
+# FAO fatty acids may include sources other than palm
 
 Proc_PalmFruit <- function(){
 
@@ -11,19 +13,75 @@ Proc_PalmFruit <- function(){
 
   SUA_item <- FBS_SUA_item_mapping %>% filter(GCAM_commodity %in% c(GCAM_crop)) %>%
     filter(FBS_label %in% c("Palm Oil and products", "Palmkernel Oil and products", "Palm kernels and products")) %>%
-    pull(SUA_item) %>% unique()
+    pull(SUA_item) %>% unique() %>% setdiff(c("Fatty acids", "Fatty substance residues"))
 
   #Filter by relevant items
   SUA_new %>% filter(item %in% c(SUA_item), element %in% Bal_element_SUA_new) -> bal
 
   #Proc_primarize
-  bal %>%
-    Proc_primarize(c("Oil palm fruit"), c("Oil, palm", "Palm kernels")) %>%
-    Proc_primarize_oil(c("Palm kernels"), c("Oil, palm kernel"), oilshare = 0.5) %>%
-    Proc_primarize(c("Oil, palm", "Oil, palm kernel"),
-                   c("Fatty acids", "Fatty substance residues")) -> bal_PE  #primary equivalent
 
-  bal_PE %>% Proc_primarize_aggregate(Primary_crop = "Oil palm fruit")-> bal_APE_new
+  bal %>%
+    filter(item %in% c("Palm kernels", "Oil, palm kernel", "Oil, palm")) %>%
+    Proc_primarize_oil(c("Palm kernels"), c("Oil, palm kernel"), oilshare = 0.5) %>%
+    spread(item, value) ->
+    bal_PE
+
+  .df %>% spread(item, value)
+  .df <- bal #%>% filter(region == "Indonesia")
+  oil_item <- NULL
+  sink_item <- c("Oil, palm kernel")
+  source_item <-  "Palm kernels"
+  oilshare = 0.5
+
+  if (is.null(oil_item) == F) {assertthat::assert_that(oil_item %in%  sink_item)} else
+    if (is.null(oil_item) & length(sink_item) == 1) {oil_item = sink_item} else
+    {stop("Need to specify oil_item!")}
+
+
+
+  .df %>% filter(element == "Production", item %in% sink_item) %>%
+    group_by(region, year, element) %>% summarise(value = sum(value), .groups = "drop") %>%
+    bind_rows(
+      .df %>% filter(element == "Production", item %in% oil_item) %>%
+        group_by(region, year, element) %>% summarise(value = sum(value), .groups = "drop") %>%
+        mutate(element = "oilprod")
+    ) %>%
+    bind_rows(
+      .df %>% filter(element == "Processed", item %in% source_item) %>%
+        group_by(region, year, element) %>% summarise(value = sum(value), .groups = "drop")
+    ) %>% spread(element, value, fill = 0) %>%
+    mutate(cakeprod =  oilprod * (1 / oilshare - 1),
+           extraction_rate = if_else(is.na((oilprod + cakeprod) / Processed), 1,
+                                     (oilprod + cakeprod) / Processed))->A
+
+  .df %>% filter(element == "Production", item %in% sink_item) %>%
+    group_by(region, year, element) %>% summarise(value = sum(value), .groups = "drop") %>%
+    bind_rows(
+      .df %>% filter(element == "Production", item %in% oil_item) %>%
+        group_by(region, year, element) %>% summarise(value = sum(value), .groups = "drop") %>%
+        mutate(element = "oilprod")
+    ) %>%
+    bind_rows(
+      .df %>% filter(element == "Processed", item %in% source_item) %>%
+        group_by(region, year, element) %>% summarise(value = sum(value), .groups = "drop")
+    ) %>% spread(element, value, fill = 0) %>%
+    mutate(cakeprod =  oilprod * (1 / oilshare - 1),
+           extraction_rate = if_else(is.na((oilprod + cakeprod) / Processed), 1,
+                                     (oilprod + cakeprod) / Processed)) %>%
+    mutate(extraction_rate = if_else(extraction_rate == 0, 1, extraction_rate)) %>%
+    select(region, year, extraction_rate, cakeprod)  %>% right_join(.df) %>%
+    mutate(value = if_else(item %in% oil_item & element == "Production", value + cakeprod, value),
+           value = if_else(item %in% oil_item & element == "Feed", value + cakeprod, value),
+           value = if_else(item %in% sink_item, value / extraction_rate, value),
+           value = if_else(item %in% source_item & element == "Processed", 0, value)) %>%
+    select(-extraction_rate, -cakeprod) %>% spread(item, value)
+
+  #removed:
+  #Proc_primarize(c("Oil palm fruit"), c("Oil, palm", "Palm kernels"))
+  #Proc_primarize(c("Oil, palm", "Oil, palm kernel"), c("Fatty acids", "Fatty substance residues"))
+
+  bal_PE %>% filter(item != "Oil palm fruit")
+    Proc_primarize_aggregate(Primary_crop = "Palm kernels")-> bal_APE_new
   unique(bal_APE_new$element)
 
   #*************
@@ -46,6 +104,34 @@ Proc_PalmFruit <- function(){
         spread(item, value), by = c("region", "year", "element")
     ) %>% replace_na(list(`Oil palm fruit` = 0)) %>%
     gather(item, value, -region, -year, -element)-> bal
+
+
+  bal %>%
+    Proc_primarize(c("Palm kernels"), c("Palmkernel Oil", "Palmkernel Cake"))
+
+
+  bal -> .df
+  sink_item = c("Palmkernel Oil", "Palmkernel Cake")
+  source_item = c("Palm kernels")
+
+  .df %>% filter(element == "Production",
+                 item %in% sink_item) %>%
+    group_by(region, year, element) %>% summarise(value = sum(value), .groups = "drop") %>%
+    bind_rows(
+      .df %>% filter(element == "Processed",
+                     item %in% source_item) %>%
+        group_by(region, year, element) %>% summarise(value = sum(value), .groups = "drop")
+    ) %>% spread(element, value, fill = 0) %>%
+    mutate(extraction_rate = if_else(is.na(Production / Processed), 1, Production / Processed)) %>%
+    mutate(extraction_rate = if_else(extraction_rate == 0, 1, extraction_rate))-> A %>%
+    select(region, year, extraction_rate) %>% right_join(.df) %>%
+    mutate(value = if_else(item %in% sink_item, value / extraction_rate, value),
+           value = if_else(item %in% source_item & element == "Processed", 0, value)) %>%
+    select(-extraction_rate)
+
+
+
+
 
   #Proc_primarize
   bal %>%
